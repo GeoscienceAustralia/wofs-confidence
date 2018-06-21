@@ -1,0 +1,29 @@
+name: mrvbf_nc
+description: MrVBF ancillary data for wofs confidence
+metadata_type: eo
+
+metadata:
+  product_type: mrvbf
+  format:
+    name: NetCDF
+
+measurements:
+  - name: band1
+    dtype: uint8
+    units: '1'
+    nodata: 255
+
+storage:
+    crs: EPSG:3577
+    dimension_order:
+    - time
+    - y
+    - x
+    driver: NetCDF CF
+    resolution:
+        x: 25
+        y: -25
+    tile_size:
+        x: 100000.0
+        y: 100000.0
+

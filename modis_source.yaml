@@ -1,0 +1,21 @@
+name: modis
+description: Modis ancillary data for wofs confidence
+metadata_type: eo
+
+metadata:
+  product_type: modis
+  format:
+    name: GeoTiff
+
+measurements:
+  - name: band1
+    dtype: float32
+    nodata: 255 
+    units: '1'
+
+storage:
+  crs: EPSG:4326
+  resolution:
+    latitude: -0.00025
+    longitude: 0.00025
+

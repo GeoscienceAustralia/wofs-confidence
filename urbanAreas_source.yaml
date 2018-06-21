@@ -1,0 +1,22 @@
+name: urban_areas
+description: urbanAreas ancillary data for wofs confidence
+metadata_type: eo
+
+metadata:
+  product_type: urban_areas
+  format:
+    name: GeoTiff
+
+measurements:
+  - name: band1
+    dtype: uint8
+    nodata: 255 
+    units: '1'
+
+storage:
+  crs: EPSG:4326
+  resolution:
+    latitude: -0.00025
+    longitude: 0.00025
+
+

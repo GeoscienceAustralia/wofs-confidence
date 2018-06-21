@@ -1,0 +1,42 @@
+source_type: dsm
+output_type: dsm_albers
+
+description: dsm 25 metre, 100km tiles, Australian Albers Equal Area projection
+
+location: '/g/data/u46/wofs/confidence_albers/dsm/tiles'
+file_path_template: 'DSM_{tile_index[0]}_{tile_index[1]}.nc'
+fuse_data: copy
+
+storage:
+  driver: NetCDF CF
+
+  crs: EPSG:3577
+  tile_size:
+          x: 100000.0
+          y: 100000.0
+  resolution:
+          x: 25
+          y: -25
+  chunking:
+      x: 200
+      y: 200
+      time: 1
+  dimension_order: ['time', 'y', 'x']
+
+measurements:
+    - name: elevation
+      dtype: float32
+      nodata: 255
+      resampling_method: nearest
+      src_varname: 'band1'
+      zlib: True
+    - name: slope
+      dtype: float32
+      nodata: 255
+      resampling_method: nearest
+      src_varname: 'band2'
+      zlib: True
+
+global_attributes:
+    title: DSM ancillary data for WOfS confidence
+    

@@ -1,0 +1,21 @@
+name: mrvbf
+description: MrVBF ancillary data for wofs confidence
+metadata_type: eo
+
+metadata:
+  product_type: mrvbf
+  format:
+    name: GeoTiff
+
+measurements:
+  - name: band1
+    dtype: uint8
+    units: '1'
+    nodata: 255
+
+storage:
+  crs: EPSG:4326
+  resolution:
+    latitude: -0.00025
+    longitude: 0.00025
+

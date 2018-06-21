@@ -1,0 +1,29 @@
+name: dsm
+description: DSM ancillary data for wofs confidence
+metadata_type: eo
+
+metadata:
+  product_type: dsm
+  format:
+    name: GeoTiff
+
+measurements:
+  # Repeat for all variables
+  - name: band1
+    dtype: float32
+    nodata: 255
+    units: '1'
+  - name: band2
+    dtype: float32
+    nodata: 255
+    units: '1'
+  - name: band3
+    dtype: float32
+    nodata: 255
+    units: '1'
+storage:
+  crs: EPSG:4326
+  resolution:
+    latitude: -0.00025
+    longitude: 0.00025
+
