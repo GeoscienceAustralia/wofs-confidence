@@ -50,6 +50,7 @@ class Config(object):
 class ConfidenceTile(object):
     def __init__(self, config, tile_spec):
         self.cfg = config
+        # ToDo: convert tile_spec to datacube.api. Tile object
         self.tile_spec = tile_spec
 
     def load_data(self, factors):
@@ -64,7 +65,7 @@ class ConfidenceTile(object):
             if factor['name'].startswith('modis'): data[data > 100] = 100
             model_data.append(data.ravel())
             del data
-        logging.info('loaded all factors for tile {}'.format(self.tile_spec))
+        logging.info('loaded all factors for tile {}'.format(self.tile_spec.__str__()))
         return np.column_stack(model_data)
 
     def compute_confidence(self):
@@ -72,5 +73,4 @@ class ConfidenceTile(object):
         X = self.load_data(model.factors)
         P = model.predict_proba(X)[:, 1]
         del X
-        # ToDo: find cell_shape
-        return P.reshape(cell_shape)
+        return P.reshape(self.tile_spec.shape)
