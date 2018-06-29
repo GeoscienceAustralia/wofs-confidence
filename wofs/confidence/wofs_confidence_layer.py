@@ -1,25 +1,12 @@
 import yaml
 import pickle
 from datacube.api import GridWorkflow
-from datacube.index import Index
 from datacube import Datacube
-
-class FactorSpec(object):
-    def __init__(self, name, env, product, band):
-        self.name = name
-        self.env = env
-        self.product = product
-        self.band = band
-
-    def __str__(self):
-        return "FactorSpec: %s at datacube %s product %s band %s" % \
-               (self.name, self.env, self.product, self.band)
-
-    def __repr__(self):
-        return self.__str__()
+import numpy as np
+import logging
 
 
-class TileConfig(object):
+class Config(object):
     def __init__(self, config_file, metadata_template_file):
         with open(config_file, 'r') as cfg_stream:
             self.cfg = yaml.load(cfg_stream)
@@ -60,42 +47,30 @@ class TileConfig(object):
             return pickle.load(f)
 
 
-class TileIO(object):
-    def __init__(self, cfg):
-        """
-
-        :param TileConfig cfg:
-        """
-        self.cfg = cfg
-
-    @staticmethod
-    def get_tile(tile_spec, factor_spec):
-        """
-        Returns a dataset corresponding to tile_spec
-        """
-
-        with Datacube(app='confidence_layer', env=factor_spec['env']) as dc:
-            gwf = GridWorkflow(dc.index)
-            return gwf.load(tile=tile_spec, measurements=factor_spec['band'])
-
-    def get_tiles_with_factor_spec(self, tile_spec, factors):
-        for factor in factors:
-            yield (factor, self.get_tile(tile_spec, factor))
-
-    def store_tile_metadata(self, tile_spec):
-        pass
-
-    def store_tile(self):
-        pass
-
-
-class ProcessTile(object):
-    def __init__(self, config, tile):
+class ConfidenceTile(object):
+    def __init__(self, config, tile_spec):
         self.cfg = config
-        self.tile = tile
+        self.tile_spec = tile_spec
 
-    def compute_tile(self):
-        pass
+    def load_data(self, factors):
+        model_data = []
+        for factor in factors:
+            with Datacube(app='confidence_layer', env=factor['env']) as dc:
+                gwf = GridWorkflow(dc.index)
+                data = gwf.load(tile=self.tile_spec, measurements=factor['band'])
+            # ToDo: Get the thresholds/bounds from config
+            if factor['name'].startswith('phat'): data[data < 0] = 0.0
+            if factor['name'].startswith('mrvbf'): data[data > 10] = 10
+            if factor['name'].startswith('modis'): data[data > 100] = 100
+            model_data.append(data.ravel())
+            del data
+        logging.info('loaded all factors for tile {}'.format(self.tile_spec))
+        return np.column_stack(model_data)
 
-    def run(self):
-        pass
+    def compute_confidence(self):
+        model = self.cfg.get_confidence_model()
+        X = self.load_data(model.factors)
+        P = model.predict_proba(X)[:, 1]
+        del X
+        # ToDo: find cell_shape
+        return P.reshape(cell_shape)
