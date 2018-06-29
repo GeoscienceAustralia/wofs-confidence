@@ -12,6 +12,9 @@ factors:
 - {name: 'clearobs', product: 'wofs_summary', band: 'water'}
 - {name: 'phat', product: 'wofs_summary', band: 'water'}
 
+# default crs
+crs:
+
 # Pre processing
 thresholds_and_bounds:
   phat: 0.0
