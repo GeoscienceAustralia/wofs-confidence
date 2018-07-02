@@ -47,24 +47,27 @@ class Config(object):
             return pickle.load(f)
 
 
-class ConfidenceTile(object):
-    def __init__(self, config, tile_spec):
+class WofsFiltered(object):
+    def __init__(self, config, grid_spec):
         self.cfg = config
-        self.tile_spec = tile_spec
+        self.grid_spec = grid_spec
 
-    def load_data(self, factors):
+    def load_data(self, cell_index, factors):
         model_data = []
         for factor in factors:
             with Datacube(app='confidence_layer', env=factor['env']) as dc:
-                gwf = GridWorkflow(dc.index)
-                data = gwf.load(tile=self.tile_spec, measurements=factor['band'])
+                product = dc.index.products.get_by_name(factor['product'])
+                gwf = GridWorkflow(dc.index, self.grid_spec)
+                geobox = gwf.grid_spec.tile_geobox(cell_index)
+                # Create the Tile object
+                data = gwf.load(tile=self.grid_spec, measurements=factor['band'])
             # ToDo: Get the thresholds/bounds from config
             if factor['name'].startswith('phat'): data[data < 0] = 0.0
             if factor['name'].startswith('mrvbf'): data[data > 10] = 10
             if factor['name'].startswith('modis'): data[data > 100] = 100
             model_data.append(data.ravel())
             del data
-        logging.info('loaded all factors for tile {}'.format(self.tile_spec))
+        logging.info('loaded all factors for tile {}'.format(self.grid_spec))
         return np.column_stack(model_data)
 
     def compute_confidence(self):
