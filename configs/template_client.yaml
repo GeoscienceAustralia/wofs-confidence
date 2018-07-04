@@ -12,8 +12,28 @@ factors:
 - {name: 'clearobs', product: 'wofs_summary', band: 'water'}
 - {name: 'phat', product: 'wofs_summary', band: 'water'}
 
-# default crs
-crs:
+# Wofs filtered summary layer to band mappings
+wofs_filtered_summary:
+  confidence: 'confidence'
+  confidence_filtered: 'confidence_filtered'
+  filename: 'wofs_filtered_summary_{}_{}.nc'
+
+# storage
+storage:
+  driver: NetCDF CF
+
+  crs: EPSG:3577
+  tile_size:
+      x: 100000.0
+      y: 100000.0
+  resolution:
+      x: 25
+      y: -25
+  chunking:
+      x: 200
+      y: 200
+      time: 1
+  dimension_order: [time, y, x]
 
 # Pre processing
 thresholds_and_bounds:
@@ -21,9 +41,11 @@ thresholds_and_bounds:
   mrvbf: 10.0
   modis: 100.0
 
-# The following specifies the temporal and spatial coverage for this WOfS run together with which
-# satellites are to be processed
+# Confidence filtering
+confidence_filtering:
+  threshold: 0.1
 
+# coverage
 coverage:
   x_min:
   x_max:
