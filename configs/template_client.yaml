@@ -1,16 +1,18 @@
 
 # datacube environments and the corresponding list of product names
 datacubes:
-- prod: ['wofs_summary', 'wofs_summary_filtered']
-- wofs_confidence: ['mrvbf', 'modis', 'slope']
+- prod: ['wofs_summary_filtered']
+- wofs_confidence: []
+- mock: ['wofs_stats', 'mrvbf', 'modis', 'urban_areas', 'dsm_albers']
 
 # the variables or factors used in the confidence model
 factors:
 - {name: 'mrvbf', product: 'mrvbf', band: 'band1'}
 - {name: 'modis', product: 'modis', band: 'band1'}
-- {name: 'slope', product: 'slope', band: 'band1'}
-- {name: 'clearobs', product: 'wofs_summary', band: 'water'}
-- {name: 'phat', product: 'wofs_summary', band: 'water'}
+- {name: 'urbanareas', product: 'urban_areas', band: 'band1'}
+- {name: 'slope', product: 'dsm_albers', band: 'slope'}
+- {name: 'clearobs', product: 'wofs_stats', band: 'count-clear'}
+- {name: 'phat', product: 'wofs_stats', band: 'frequency'}
 
 # Wofs filtered summary layer to band mappings
 wofs_filtered_summary:
@@ -43,6 +45,7 @@ thresholds_and_bounds:
 
 # Confidence filtering
 confidence_filtering:
+  trained_model_path: '/g/data/u46/wofs/confidence_albers/tmp/confidence_model.pkl'
   threshold: 0.1
 
 # coverage
