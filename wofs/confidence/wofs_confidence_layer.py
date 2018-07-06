@@ -15,6 +15,7 @@ import logging
 DEFAULT_CRS = 'EPSG:3577'
 DEFAULT_NODATA = np.nan
 DEFAULT_TYPE = 'float32'
+DEFAULT_THRESHOLD_FILTERED = 0.10
 
 
 class TrainingModel(object):
@@ -104,10 +105,7 @@ class WofsFiltered(object):
             if factor['name'].startswith('mrvbf'): data[data > 10] = 10
             if factor['name'].startswith('modis'): data[data > 100] = 100
             model_data.append(data.ravel())
-            if factor['env'] == 'mock':
-                pass
-            else:
-                del data
+            del data
         del mock_data
         logging.info('loaded all factors for tile {}'.format(cell_index))
         return np.column_stack(model_data)
@@ -130,7 +128,7 @@ class WofsFiltered(object):
             indexed_tiles = gwf.list_cells(cell_index, product='ls5_nbar_albers')
             # load the data of the tile
             dataset = gwf.load(tile=indexed_tiles[cell_index], measurements=['blue'])
-            data = dataset.data_vars['blue'][270, :, :].data
+            data = dataset.data_vars['blue'][270, :, :].data.astype(DEFAULT_TYPE)
         # End: mock code
 
         # with Datacube(app='wofs_summary', env=env) as dc:
@@ -146,7 +144,7 @@ class WofsFiltered(object):
             threshold = con_filtering.get('threshold')
 
         if threshold:
-            data[con_layer <= threshold] = 0.0
+            data[con_layer <= threshold] = np.nan
         else:
             data[con_layer <= 0.10] = np.nan
         return data
