@@ -1,0 +1,74 @@
+
+# datacube environments and the corresponding list of product names
+datacubes:
+- prod: ['wofs_summary_filtered']
+- wofs_confidence: []
+- mock: ['wofs_stats', 'mrvbf', 'modis', 'urban_areas', 'dsm_albers']
+
+# the variables or factors used in the confidence model
+factors:
+- {name: 'mrvbf', product: 'mrvbf', band: 'band1'}
+- {name: 'modis', product: 'modis', band: 'band1'}
+- {name: 'urbanareas', product: 'urban_areas', band: 'band1'}
+- {name: 'slope', product: 'dsm_albers', band: 'slope'}
+- {name: 'clearobs', product: 'wofs_stats', band: 'count-clear'}
+- {name: 'phat', product: 'wofs_stats', band: 'frequency'}
+
+# Wofs filtered summary layer to band mappings
+wofs_filtered_summary:
+  confidence: 'confidence'
+  confidence_filtered: 'confidence_filtered'
+  filename: 'wofs_filtered_summary_{}_{}.nc'
+
+# storage
+storage:
+  driver: NetCDF CF
+
+  crs: EPSG:3577
+  tile_size:
+      x: 100000.0
+      y: 100000.0
+  resolution:
+      x: 25
+      y: -25
+  chunking:
+      x: 200
+      y: 200
+      time: 1
+  dimension_order: [time, y, x]
+
+# Pre processing
+thresholds_and_bounds:
+  phat: 0.0
+  mrvbf: 10.0
+  modis: 100.0
+
+# Confidence filtering
+confidence_filtering:
+  trained_model_path: '/g/data/u46/wofs/confidence_albers/tmp/confidence_model.pkl'
+  threshold: 0.1
+
+# coverage
+coverage:
+  x_min:
+  x_max:
+  y_min:
+  y_max:
+  # list of cells to exclude from processing
+  exclude_cells: [[150,-33],[150,-34]]
+
+  # list of cells to include. If this list is empty or the parameter absent, ALL datacube cells within
+  # the bounds of the coverage are included.
+  # The following are WOfS test cells
+
+  include_cells: [[115,-32],[119,-25],[122,-33],[124,-28],[132,-13],[132,-23],[137,-28],[139,-25],[139,-31],
+                  [142,-16],[142,-32],[143,-36],[144,-38],[145,-17],[146,-43],[147,-37],[149,-35],[149,-36],
+                  [150,-27],[150,-34],[139,-36],[139,-37],[139,-38],[140,-36],[140,-37],[140,-38],[140,-39],
+                  [130,-13],[144,-39],[145,-39],[153,-28],[123,-17],[123,-18],[146,-39],[149,-38],[121,-29],
+                  [142,-22],[118,-23],[146,-34],[135,-18]]
+
+logs:
+# a sub directory of the working directory. Futher sub-directories are maintained for
+# each major processing step
+  path: ./logs
+  level: INFO
