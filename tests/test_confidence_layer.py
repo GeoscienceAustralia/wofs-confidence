@@ -17,8 +17,6 @@ def test_configs():
 # Test WofsFiltered class
 def test_wofs_filtered():
     cfg = Config('../configs/template_client.yaml')
-    dc = Datacube(app='test-wofs', env='prod')
-    # grid_spec = dc.index.products.get_by_name('ls5_nbar_albers').grid_spec
     grid_spec = GridSpec(crs=CRS('EPSG:3577'), tile_size=(10000, 10000), resolution=(-25, 25))
     # import ipdb; ipdb.set_trace()
     cell_index = (-120, -120)
