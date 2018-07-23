@@ -117,7 +117,7 @@ class WofsFiltered(object):
             # training than what is on datacube
             if factor['name'].startswith('phat'): data = data * 100.0
 
-            if factor['name'].startswith('phat'): data[data < 0] = 0.0
+            if factor['name'].startswith('phat'): data[data < 0.0] = 0.0
             if factor['name'].startswith('mrvbf'): data[data > 10] = 10
             if factor['name'].startswith('modis'): data[data > 100] = 100
             model_data.append(data.ravel())
@@ -144,10 +144,6 @@ class WofsFiltered(object):
             dataset = gwf.load(tile=indexed_tile[self.cell_index], measurements=['frequency'])
             data = dataset.data_vars['frequency'].data.ravel().reshape(self.grid_spec.tile_resolution)
 
-        # Rescale the data: Keep an eye on this since this is to do with phat training data
-        # has a different scaling factor (0.0-100.0) than (0.0-1.0) in wofs-summary
-        data = data * 100.0
-
         con_filtering = self.cfg.cfg.get('confidence_filtering')
         threshold = None
         if con_filtering:
@@ -157,7 +153,8 @@ class WofsFiltered(object):
             data[con_layer <= threshold] = DEFAULT_FLOAT_NODATA
         else:
             data[con_layer <= 0.10] = DEFAULT_FLOAT_NODATA
-        return data / 100.0
+
+        return data
 
     def get_filtered_uri(self):
         return self.cfg.cfg['wofs_filtered_summary']['filename'].format(self.cell_index[0], self.cell_index[1])
@@ -185,7 +182,7 @@ class WofsFiltered(object):
                                      geo_box.coordinates[dim].units)
 
         # Compute dataset variables
-        spatial_var = Variable(dtype=np.dtype(DEFAULT_TYPE), nodata=DEFAULT_NODATA,
+        spatial_var = Variable(dtype=np.dtype(DEFAULT_TYPE), nodata=DEFAULT_FLOAT_NODATA,
                                dims=('time',) + geo_box.dimensions,
                                units=('seconds since 1970-01-01 00:00:00',) + geo_box.crs.units)
         vars = {self.cfg.cfg['wofs_filtered_summary']['confidence']: spatial_var,
@@ -204,15 +201,20 @@ class WofsFiltered(object):
                                                  variable_params=vars_params)
 
         # Confidence layer: Fill variable data and set attributes
-        netcdf_unit['confidence'][:] = netcdf_writer.netcdfy_data(self.compute_confidence(self.cell_index))
-        netcdf_unit['confidence'].valid_range = [0.0, 1.0]
+        confidence = self.compute_confidence(self.cell_index)
+        netcdf_unit['confidence'][:] = netcdf_writer.netcdfy_data(confidence)
+        netcdf_unit['confidence'].units = '1'
+        netcdf_unit['confidence'].valid_range = [-1.0, 1.0]
         netcdf_unit['confidence'].standard_name = 'confidence'
         netcdf_unit['confidence'].coverage_content_type = 'modelResult'
         netcdf_unit['confidence'].long_name = \
             'Wofs Confidence Layer predicted by {}'.format(self.confidence_model.factors.__str__())
 
         # Confidence filtered wofs-stats frequency layer: Fill variable data and set attributes
-        netcdf_unit['confidence_filtered'][:] = netcdf_writer.netcdfy_data(self.compute_confidence_filtered())
+        confidence_filtered = self.compute_confidence_filtered()
+        netcdf_unit['confidence_filtered'][:] = netcdf_writer.netcdfy_data(confidence_filtered)
+        netcdf_unit['confidence_filtered'].units = '1';
+        netcdf_unit['confidence_filtered'].valid_range = [-1.0, 1.0]
         netcdf_unit['confidence_filtered'].standard_name = 'confidence_filtered'
         netcdf_unit['confidence_filtered'].coverage_content_type = 'modelResult'
         netcdf_unit['confidence_filtered'].long_name = 'Wofs-stats frequency confidence filtered layer'
