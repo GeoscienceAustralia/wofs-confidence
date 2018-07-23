@@ -14,6 +14,7 @@ from datetime import datetime
 from pathlib import Path
 import logging
 import click
+import rasterio
 
 try:
     from yaml import CSafeDumper as SafeDumper
@@ -111,6 +112,11 @@ class WofsFiltered(object):
                 # load the data of the tile
                 dataset = gwf.load(tile=indexed_tiles[cell_index], measurements=[factor['band']])
                 data = dataset.data_vars[factor['band']].data
+
+            # Rescale where needed: Keep an eye on this since this is to do with different scaling factors used during
+            # training than what is on datacube
+            if factor['name'].startswith('phat'): data = data * 100.0
+
             if factor['name'].startswith('phat'): data[data < 0] = 0.0
             if factor['name'].startswith('mrvbf'): data[data > 10] = 10
             if factor['name'].startswith('modis'): data[data > 100] = 100
@@ -122,8 +128,6 @@ class WofsFiltered(object):
 
     def compute_confidence(self, cell_index):
         model = self.cfg.get_confidence_model()
-        import ipdb; ipdb.set_trace()
-        print(model.factors)
         X = self.load_tile_data(cell_index, model.factors)
         P = model.predict_proba(X)[:, 1]
         del X
@@ -140,6 +144,10 @@ class WofsFiltered(object):
             dataset = gwf.load(tile=indexed_tile[self.cell_index], measurements=['frequency'])
             data = dataset.data_vars['frequency'].data.ravel().reshape(self.grid_spec.tile_resolution)
 
+        # Rescale the data: Keep an eye on this since this is to do with phat training data
+        # has a different scaling factor (0.0-100.0) than (0.0-1.0) in wofs-summary
+        data = data * 100.0
+
         con_filtering = self.cfg.cfg.get('confidence_filtering')
         threshold = None
         if con_filtering:
@@ -149,7 +157,7 @@ class WofsFiltered(object):
             data[con_layer <= threshold] = DEFAULT_FLOAT_NODATA
         else:
             data[con_layer <= 0.10] = DEFAULT_FLOAT_NODATA
-        return data
+        return data / 100.0
 
     def get_filtered_uri(self):
         return self.cfg.cfg['wofs_filtered_summary']['filename'].format(self.cell_index[0], self.cell_index[1])
