@@ -4,6 +4,7 @@ from datacube.api import GridWorkflow
 from datacube.model import GridSpec, Variable
 from datacube.model.utils import make_dataset
 from datacube.utils.geometry import GeoBox, Coordinate, CRS
+from datacube.utils import datetime_to_seconds_since_1970
 from datacube.storage import netcdf_writer
 from datacube.storage.storage import create_netcdf_storage_unit
 from datacube import Datacube
@@ -61,6 +62,11 @@ class Config(object):
                             'product': factor['product'],
                             'band': factor['band']}
 
+    def get_grid_spec(self):
+        return GridSpec(CRS(self.cfg['storage']['crs']),
+                        (self.cfg['storage']['tile_size']['x'], self.cfg['storage']['tile_size']['y']),
+                        (self.cfg['storage']['resolution']['x'], self.cfg['storage']['resolution']['y']))
+
     def get_confidence_model(self):
         """
             The model representation we use are sklearn.LogisticRegression objects with
@@ -104,7 +110,6 @@ class WofsFiltered(object):
                 indexed_tiles = gwf.list_cells(cell_index, product=factor['product'])
                 # load the data of the tile
                 dataset = gwf.load(tile=indexed_tiles[cell_index], measurements=[factor['band']])
-                # data = dataset.data_vars[factor['band']].data.ravel().reshape(self.grid_spec.tile_resolution)
                 data = dataset.data_vars[factor['band']].data
             if factor['name'].startswith('phat'): data[data < 0] = 0.0
             if factor['name'].startswith('mrvbf'): data[data > 10] = 10
@@ -117,6 +122,8 @@ class WofsFiltered(object):
 
     def compute_confidence(self, cell_index):
         model = self.cfg.get_confidence_model()
+        import ipdb; ipdb.set_trace()
+        print(model.factors)
         X = self.load_tile_data(cell_index, model.factors)
         P = model.predict_proba(X)[:, 1]
         del X
@@ -163,15 +170,16 @@ class WofsFiltered(object):
 
         # Compute dataset coords
         coords = dict()
-        coords['time'] = Coordinate(netcdf_writer.netcdfy_coord(np.array([datetime.now().isoformat()])),
-                                    ['seconds since 1970-01-01 00:00:00'])
+        coords['time'] = Coordinate(netcdf_writer.netcdfy_coord(
+            np.array([datetime_to_seconds_since_1970(center_time)])), ['seconds since 1970-01-01 00:00:00'])
         for dim in geo_box.dimensions:
             coords[dim] = Coordinate(netcdf_writer.netcdfy_coord(geo_box.coordinates[dim].values),
                                      geo_box.coordinates[dim].units)
 
         # Compute dataset variables
         spatial_var = Variable(dtype=np.dtype(DEFAULT_TYPE), nodata=DEFAULT_NODATA,
-                               dims=geo_box.dimensions, units=geo_box.crs.units)
+                               dims=('time',) + geo_box.dimensions,
+                               units=('seconds since 1970-01-01 00:00:00',) + geo_box.crs.units)
         vars = {self.cfg.cfg['wofs_filtered_summary']['confidence']: spatial_var,
                 self.cfg.cfg['wofs_filtered_summary']['confidence_filtered']: spatial_var}
         vars_params = {self.cfg.cfg['wofs_filtered_summary']['confidence']: {},
@@ -215,7 +223,7 @@ class WofsFiltered(object):
 @click.option('--cell', nargs=2, type=click.Tuple([int, int]), help='The cell index')
 def main(config, cell):
     cfg = Config(config)
-    grid_spec = GridSpec(crs=CRS('EPSG:3577'), tile_size=(100000, 100000), resolution=(-25, 25))
+    grid_spec = cfg.get_grid_spec()
     wf = WofsFiltered(cfg, grid_spec, cell)
     wf.compute_and_write()
 
