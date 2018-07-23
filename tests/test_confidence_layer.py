@@ -1,4 +1,4 @@
-from wofs.confidence import Config, WofsFiltered
+from confidence import Config, WofsFiltered
 from datacube import Datacube
 from datacube.api import GridWorkflow
 from datacube.model import GridSpec
@@ -27,25 +27,25 @@ def test_wofs_filtered():
     filtered = wf.compute_confidence_filtered()
 
     # Display images: to be removed later
-    # with Datacube(app='wofs_summary', env='dev') as dc:
-    #     gwf = GridWorkflow(dc.index, grid_spec)
-    #     indexed_tile = gwf.list_cells(cell_index, product='wofs_statistical_summary')
-    #     # load the data of the tile
-    #     dataset = gwf.load(tile=indexed_tile[cell_index], measurements=['frequency'])
-    #     frequency = dataset.data_vars['frequency'].data.ravel().reshape(grid_spec.tile_resolution)
+    with Datacube(app='wofs_summary', env='dev') as dc:
+        gwf = GridWorkflow(dc.index, grid_spec)
+        indexed_tile = gwf.list_cells(cell_index, product='wofs_statistical_summary')
+        # load the data of the tile
+        dataset = gwf.load(tile=indexed_tile[cell_index], measurements=['frequency'])
+        frequency = dataset.data_vars['frequency'].data.ravel().reshape(grid_spec.tile_resolution)
 
     # Check with previous run
-    # with rasterio.open('confidenceFilteredWOfS_17_-39_epsilon=10.tiff') as f:
-    #     data = f.read(1)
-    # plt.subplot(221)
-    # plt.imshow(frequency)
-    # plt.subplot(222)
-    # plt.imshow(data)
-    # plt.subplot(223)
-    # plt.imshow(confidence)
-    # plt.subplot(224)
-    # plt.imshow(filtered)
-    # plt.show()
+    with rasterio.open('confidenceFilteredWOfS_17_-39_epsilon=10.tiff') as f:
+        data = f.read(1)
+    plt.subplot(221)
+    plt.imshow(frequency)
+    plt.subplot(222)
+    plt.imshow(data)
+    plt.subplot(223)
+    plt.imshow(confidence)
+    plt.subplot(224)
+    plt.imshow(filtered)
+    plt.show()
     wf.compute_and_write()
 
 
