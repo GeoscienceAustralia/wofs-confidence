@@ -14,7 +14,6 @@ from datetime import datetime
 from pathlib import Path
 import logging
 import click
-import rasterio
 
 try:
     from yaml import CSafeDumper as SafeDumper
@@ -84,7 +83,14 @@ class Config(object):
 
 
 class WofsFiltered(object):
-    def __init__(self, config: Config, grid_spec: GridSpec, cell_index):
+    def __init__(self, config, grid_spec, cell_index):
+        """
+        Implements confidence filtering of wofs-summary frequency band and creation of
+        filtered summary datasets.
+        :param Config config:
+        :param GridSpec grid_spec:
+        :param cell_index:
+        """
         self.cfg = config
         self.grid_spec = grid_spec
         self.confidence_model = config.get_confidence_model()
@@ -213,7 +219,7 @@ class WofsFiltered(object):
         # Confidence filtered wofs-stats frequency layer: Fill variable data and set attributes
         confidence_filtered = self.compute_confidence_filtered()
         netcdf_unit['confidence_filtered'][:] = netcdf_writer.netcdfy_data(confidence_filtered)
-        netcdf_unit['confidence_filtered'].units = '1';
+        netcdf_unit['confidence_filtered'].units = '1'
         netcdf_unit['confidence_filtered'].valid_range = [-1.0, 1.0]
         netcdf_unit['confidence_filtered'].standard_name = 'confidence_filtered'
         netcdf_unit['confidence_filtered'].coverage_content_type = 'modelResult'

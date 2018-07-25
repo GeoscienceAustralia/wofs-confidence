@@ -1,1 +1,1 @@
-from .wofs_confidence_layer import Config, WofsFiltered
+from .wofs_filtered import Config, WofsFiltered
