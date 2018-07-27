@@ -19,6 +19,7 @@ wofs_filtered_summary:
   confidence: 'confidence'
   confidence_filtered: 'confidence_filtered'
   filename: 'wofs_filtered_summary_{}_{}.nc'
+  filtered_summary_dir: '/g/data/u46/users/aj9439/wofs/data'
 
 # storage
 storage:
@@ -50,22 +51,7 @@ confidence_filtering:
 
 # coverage
 coverage:
-  x_min:
-  x_max:
-  y_min:
-  y_max:
-  # list of cells to exclude from processing
-  exclude_cells: [[150,-33],[150,-34]]
-
-  # list of cells to include. If this list is empty or the parameter absent, ALL datacube cells within
-  # the bounds of the coverage are included.
-  # The following are WOfS test cells
-
-  include_cells: [[115,-32],[119,-25],[122,-33],[124,-28],[132,-13],[132,-23],[137,-28],[139,-25],[139,-31],
-                  [142,-16],[142,-32],[143,-36],[144,-38],[145,-17],[146,-43],[147,-37],[149,-35],[149,-36],
-                  [150,-27],[150,-34],[139,-36],[139,-37],[139,-38],[140,-36],[140,-37],[140,-38],[140,-39],
-                  [130,-13],[144,-39],[145,-39],[153,-28],[123,-17],[123,-18],[146,-39],[149,-38],[121,-29],
-                  [142,-22],[118,-23],[146,-34],[135,-18]]
+  tile_list_path: '/home/547/aj9439/PycharmProjects/wofs-confidence/configs/temp_tile_list'
 
 logs:
 # a sub directory of the working directory. Futher sub-directories are maintained for
