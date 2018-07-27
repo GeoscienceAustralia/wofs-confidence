@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import yaml
 import pickle
 from datacube.api import GridWorkflow
@@ -163,7 +165,9 @@ class WofsFiltered(object):
         return data
 
     def get_filtered_uri(self):
-        return self.cfg.cfg['wofs_filtered_summary']['filename'].format(self.cell_index[0], self.cell_index[1])
+        file_name = self.cfg.cfg['wofs_filtered_summary']['filename'].format(self.cell_index[0],
+                                                                             self.cell_index[1])
+        return Path(self.cfg.cfg['wofs_filtered_summary']['filtered_summary_dir']) / Path(file_name)
 
     def compute_and_write(self):
         geo_box = self.grid_spec.tile_geobox(self.cell_index)
@@ -200,7 +204,7 @@ class WofsFiltered(object):
         crs = self.cfg.cfg['storage']['crs'] if self.cfg.cfg['storage'].get('crs') else DEFAULT_CRS
 
         # Create a dataset container
-        netcdf_unit = create_netcdf_storage_unit(filename=Path(self.get_filtered_uri()),
+        netcdf_unit = create_netcdf_storage_unit(filename=self.get_filtered_uri(),
                                                  crs=CRS(crs),
                                                  coordinates=coords,
                                                  variables=vars,
@@ -230,7 +234,6 @@ class WofsFiltered(object):
         netcdf_writer.create_variable(netcdf_unit, 'dataset', dataset_data, zlib=True)
         netcdf_unit['dataset'][:] = netcdf_writer.netcdfy_data(dataset_data.values)
 
-        # close the dataset
         netcdf_unit.close()
 
 
