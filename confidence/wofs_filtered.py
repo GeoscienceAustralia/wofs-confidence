@@ -86,18 +86,18 @@ class WofsFiltered(object):
     Computes, writes of wofs filtered summary product for a single tile.
     """
 
-    def __init__(self, config, grid_spec, cell_index):
+    def __init__(self, config, grid_spec, tile_index):
         """
         Implements confidence filtering of wofs-summary frequency band and creation of
         filtered summary datasets.
         :param Config config: confidence Config object
         :param GridSpec grid_spec: A GridSpec object size 100kmx100km
-        :param cell_index: Tuple like (17 , -39)
+        :param tile_index: Tuple like (17 , -39)
         """
         self.cfg = config
         self.grid_spec = grid_spec
         self.confidence_model = config.get_confidence_model()
-        self.cell_index = cell_index
+        self.tile_index = tile_index
         self.factor_sources = self._get_factor_datasets()
 
     def _get_factor_datasets(self):
@@ -106,8 +106,8 @@ class WofsFiltered(object):
             factor = self.cfg.get_factor_info(fac)
             with Datacube(app='confidence_layer', env=factor['env']) as dc:
                 gwf = GridWorkflow(dc.index, self.grid_spec)
-                obs = gwf.cell_observations(cell_index=self.cell_index, product=factor['product'])
-                for ds in obs[self.cell_index]['datasets']:
+                obs = gwf.cell_observations(cell_index=self.tile_index, product=factor['product'])
+                for ds in obs[self.tile_index]['datasets']:
                     dts.append(ds)
         return dts
 
@@ -122,9 +122,9 @@ class WofsFiltered(object):
             factor = self.cfg.get_factor_info(fac)
             with Datacube(app='confidence_layer', env=factor['env']) as dc:
                 gwf = GridWorkflow(dc.index, self.grid_spec)
-                indexed_tiles = gwf.list_cells(self.cell_index, product=factor['product'])
+                indexed_tiles = gwf.list_cells(self.tile_index, product=factor['product'])
                 # load the data of the tile
-                dataset = gwf.load(tile=indexed_tiles[self.cell_index], measurements=[factor['band']])
+                dataset = gwf.load(tile=indexed_tiles[self.tile_index], measurements=[factor['band']])
                 data = dataset.data_vars[factor['band']].data
 
             # Rescale where needed: Keep an eye on this since this is to do with different scaling factors used during
@@ -137,7 +137,7 @@ class WofsFiltered(object):
             model_data.append(data.ravel())
             del data
         # del mock_data
-        logging.info('loaded all factors for tile {}'.format(self.cell_index))
+        logging.info('loaded all factors for tile {}'.format(self.tile_index))
         return np.column_stack(model_data)
 
     def compute_confidence(self):
@@ -162,9 +162,9 @@ class WofsFiltered(object):
 
         with Datacube(app='wofs_summary', env=env) as dc:
             gwf = GridWorkflow(dc.index, self.grid_spec)
-            indexed_tile = gwf.list_cells(self.cell_index, product='wofs_statistical_summary')
+            indexed_tile = gwf.list_cells(self.tile_index, product='wofs_statistical_summary')
             # load the data of the tile
-            dataset = gwf.load(tile=indexed_tile[self.cell_index], measurements=['frequency'])
+            dataset = gwf.load(tile=indexed_tile[self.tile_index], measurements=['frequency'])
             data = dataset.data_vars['frequency'].data.ravel().reshape(self.grid_spec.tile_resolution)
 
         con_filtering = self.cfg.cfg.get('confidence_filtering')
@@ -184,8 +184,8 @@ class WofsFiltered(object):
         Return a Path object of wofs filtered summary NetCDF file corresponding to the current tile.
         """
 
-        file_name = self.cfg.cfg['wofs_filtered_summary']['filename'].format(self.cell_index[0],
-                                                                             self.cell_index[1])
+        file_name = self.cfg.cfg['wofs_filtered_summary']['filename'].format(self.tile_index[0],
+                                                                             self.tile_index[1])
         return Path(self.cfg.cfg['wofs_filtered_summary']['filtered_summary_dir']) / Path(file_name)
 
     def compute_and_write(self):
@@ -194,13 +194,13 @@ class WofsFiltered(object):
         corresponding NetCDF file. The file template and location etc are read from the configs.
         """
 
-        geo_box = self.grid_spec.tile_geobox(self.cell_index)
+        geo_box = self.grid_spec.tile_geobox(self.tile_index)
 
         # Compute metadata
         env = self.cfg.get_env_of_product('wofs_filtered_summary')
         with Datacube(app='wofs-confidence', env=env) as dc:
             product = dc.index.products.get_by_name('wofs_filtered_summary')
-        extent = self.grid_spec.tile_geobox(self.cell_index).extent
+        extent = self.grid_spec.tile_geobox(self.tile_index).extent
         center_time = datetime.now()
         uri = self.get_filtered_uri()
         dts = make_dataset(product=product, sources=self.factor_sources,
@@ -316,15 +316,15 @@ def print_tiles(ctx, param, value):
 @click.option('--config', help='The config file')
 @click.option('--retile', is_flag=True, callback=print_tiles,
               help='Identify tiles to be computed for a new run')
-@click.option('--cell', nargs=2, type=click.Tuple([int, int]), help='The cell index')
-def main(config, retile, cell):
+@click.option('--tile', nargs=2, type=click.Tuple([int, int]), help='The tile index')
+def main(config, retile, tile):
     if config:
         cfg = Config(config)
     else:
         cfg = Config('/g/data/u46/users/aj9439/wofs/configs/template_client.yaml')
-    if cell:
+    if tile:
         grid_spec = cfg.get_grid_spec()
-        wf = WofsFiltered(cfg, grid_spec, cell)
+        wf = WofsFiltered(cfg, grid_spec, tile)
         wf.compute_and_write()
 
 
