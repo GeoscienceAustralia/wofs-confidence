@@ -321,7 +321,7 @@ def main(config, retile, cell):
     if config:
         cfg = Config(config)
     else:
-        cfg = Config('/home/547/aj9439/PycharmProjects/wofs-confidence/configs/template_client.yaml')
+        cfg = Config('/g/data/u46/users/aj9439/wofs/configs/template_client.yaml')
     if cell:
         grid_spec = cfg.get_grid_spec()
         wf = WofsFiltered(cfg, grid_spec, cell)
