@@ -1,0 +1,44 @@
+#!/bin/bash
+#PBS -P u46
+#PBS -l ncpus=32,mem=2950GB,walltime=24:00:00,wd
+#PBS -N s2-tst
+#PBS -q megamem
+
+module load agdc-py3-env
+
+INDEX=/short/v10/$USER/$PBS_JOBID
+NNODES=$(cat $PBS_NODEFILE | uniq | wc -l)
+NJOBS=32
+NCPUS=32
+
+JOBDIR=$PWD
+
+# Generate tile index
+
+mkdir -p $INDEX
+./wofs_filtered.py --config /g/data/u46/users/aj9439/wofs/configs/template_client.yaml \
+                   --retile > $PBS_JOBFS/tilesr
+NTILES=$(cat $PBS_JOBFS/tilesr | wc -l)
+NSPLIT=$(( ($NTILES + $NNODES - 1)/$NNODES ))
+sort -r -n $PBS_JOBFS/tilesr | split -l $NSPLIT - $INDEX/x
+
+echo --
+cat $PBS_NODEFILE | uniq
+echo --
+
+# Distribute work
+
+TILES=($INDEX/x*)
+for i in $(seq 1 $NNODES); do
+  TILEINDEX=$(($i-1))
+  TILEFILE="${TILES[$TILEINDEX]}"
+  pbsdsh -n $(( $NCPUS*$i )) -- \
+  bash -l -c "\
+        module load parallel agdc-py3-env; cd $JOBDIR;\
+        parallel --wc -j$NJOBS --delay 5 --linebuffer --colsep ' ' \
+        -a $TILEFILE \"./wofs_filtered.py --config /g/data/u46/users/aj9439/wofs/configs/template_client.yaml \
+        --cell {1} {2} \"" &
+done;
+wait
+
+rm -fr $INDEX
