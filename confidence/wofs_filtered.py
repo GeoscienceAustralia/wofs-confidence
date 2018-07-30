@@ -14,6 +14,8 @@ import numpy as np
 from xarray import DataArray
 from datetime import datetime
 from pathlib import Path
+import pydash
+import subprocess
 import logging
 import click
 
@@ -27,11 +29,6 @@ DEFAULT_NODATA = np.nan
 DEFAULT_FLOAT_NODATA = -1.0
 DEFAULT_TYPE = 'float32'
 DEFAULT_THRESHOLD_FILTERED = 0.10
-
-
-class TrainingModel(object):
-    def __init__(self):
-        pass
 
 
 class Config(object):
@@ -237,14 +234,71 @@ class WofsFiltered(object):
         netcdf_unit.close()
 
 
+class TileProcessor(object):
+    """
+    Identify tiles to br processed.
+    """
+    def __init__(self, cfg: Config):
+        self.cfg = cfg
+
+    def get_tile_list(self):
+        """
+        Return the list of tiles for Australian continental run.
+        Each tile is a tuple, eg (17, -39)
+        """
+        list_path = self.cfg.cfg['coverage']['tile_list_path']
+        tiles = []
+        with open(list_path, 'r') as f:
+            for line in f:
+                num = [int(str_num) for str_num in line[:-1].split()]
+                tiles.append((num[0], num[1]))
+        return tiles
+
+    def get_tiles_to_process(self):
+        """
+        Identify the tiles not present in the filtered summary directory specified bt the configs
+        for a australian continental coverage.
+        """
+
+        def file_exists(tile):
+            file_name = self.cfg.cfg['wofs_filtered_summary']['filename'].format(tile[0], tile[1])
+            file_path = Path(self.cfg.cfg['wofs_filtered_summary']['filtered_summary_dir']) / Path(file_name)
+            return file_path.is_file()
+
+        tile_list = self.get_tile_list()
+        # remove existing tiles from the list
+        return [tile for tile in tile_list if not file_exists(tile)]
+
+    def print_tiles_to_process(self):
+        """
+        Print the tiles yet to be processed on to the screen
+        """
+        tiles = self.get_tiles_to_process()
+        for tile in tiles:
+            print('{} {}'.format(tile[0], tile[1]))
+
+
+def print_tiles(ctx, param, value):
+    if value:
+        processor = TileProcessor(Config(ctx.params['config']))
+        processor.print_tiles_to_process()
+        ctx.exit()
+
+
 @click.command()
 @click.option('--config', help='The config file')
+@click.option('--retile', is_flag=True, callback=print_tiles,
+              help='Identify tiles to be computed for a new run')
 @click.option('--cell', nargs=2, type=click.Tuple([int, int]), help='The cell index')
-def main(config, cell):
-    cfg = Config(config)
-    grid_spec = cfg.get_grid_spec()
-    wf = WofsFiltered(cfg, grid_spec, cell)
-    wf.compute_and_write()
+def main(config, retile, cell):
+    if config:
+        cfg = Config(config)
+    else:
+        cfg = Config('/home/547/aj9439/PycharmProjects/wofs-confidence/configs/template_client.yaml')
+    if cell:
+        grid_spec = cfg.get_grid_spec()
+        wf = WofsFiltered(cfg, grid_spec, cell)
+        wf.compute_and_write()
 
 
 if __name__ == '__main__':
