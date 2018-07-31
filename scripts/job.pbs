@@ -1,21 +1,24 @@
 #!/bin/bash
 #PBS -P u46
-#PBS -l ncpus=4,mem=16GB,walltime=1:00:00
+#PBS -l ncpus=4,mem=32GB,walltime=00:10:00,wd
 #PBS -q normal
 
-module load agdc-py3-env
+module use /g/data/v10/public/modules/modulefiles
+module load dea
 
 INDEX=/short/v10/$USER/$PBS_JOBID
-NNODES=4
+NNODES=1
 NJOBS=4
 NCPUS=4
 
 JOBDIR=$PWD
+cp /g/data/u46/users/aj9439/wofs/tests/datacube.conf $JOBDIR
 
 # Generate tile index
 
 mkdir -p $INDEX
-./wofs_filtered.py --config /g/data/u46/users/aj9439/wofs/configs/template_client.yaml \
+/g/data/u46/users/aj9439/wofs/tests/wofs_filtered.py \
+                   --config /g/data/u46/users/aj9439/wofs/configs/template_client.yaml \
                    --retile > $PBS_JOBFS/tilesr
 NTILES=$(cat $PBS_JOBFS/tilesr | wc -l)
 NSPLIT=$(( ($NTILES + $NNODES - 1)/$NNODES ))
@@ -33,10 +36,12 @@ for i in $(seq 1 $NNODES); do
   TILEFILE="${TILES[$TILEINDEX]}"
   pbsdsh -n $(( $NCPUS*$i )) -- \
   bash -l -c "\
-        module load parallel agdc-py3-env; cd $JOBDIR;\
+        module use /g/data/v10/public/modules/modulefiles;\
+        module load parallel dea; cd $JOBDIR;\
         parallel --wc -j$NJOBS --delay 5 --linebuffer --colsep ' ' \
-        -a $TILEFILE \"./wofs_filtered.py --config /g/data/u46/users/aj9439/wofs/configs/template_client.yaml \
-        --cell {1} {2} \"" &
+        -a $TILEFILE \"/g/data/u46/users/aj9439/wofs/tests/wofs_filtered.py \
+        --config /g/data/u46/users/aj9439/wofs/configs/template_client.yaml \
+        --tile {1} {2} \"" &
 done;
 wait
 
