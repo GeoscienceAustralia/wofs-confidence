@@ -89,7 +89,7 @@ global_attributes:
 
       Even though confidence filtering is applied to the Filtered Water Summary, some cloud
       and shadow, and sensor noise does persist.
-  source: "Water Observation from Space Detection Algorithm v1.2"
+  source: "Water Observations from Space Detection Algorithm v1.5"
   cmi_id: wo-filt-stats_25_2.1.5
   institution: Commonwealth of Australia (Geoscience Australia)
   keywords: AU/GA,NASA/GSFC/SED/ESD/LANDSAT,ETM+,TM,OLI,EARTH SCIENCE,SURFACE WATER,FLOOD
