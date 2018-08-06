@@ -19,7 +19,7 @@ factors:
 # Wofs filtered summary layer to band mappings
 wofs_filtered_summary:
   confidence: 'confidence'
-  confidence_filtered: 'confidence_filtered'
+  confidence_filtered: 'wofs_filtered_summary'
   filename: 'wofs_filtered_summary_{}_{}.nc'
   filtered_summary_dir: '/g/data/u46/users/aj9439/wofs/data'
 
