@@ -63,8 +63,8 @@ class Config(object):
 
     def get_grid_spec(self):
         return GridSpec(CRS(self.cfg['storage']['crs']),
-                        (self.cfg['storage']['tile_size']['x'], self.cfg['storage']['tile_size']['y']),
-                        (self.cfg['storage']['resolution']['x'], self.cfg['storage']['resolution']['y']))
+                        (self.cfg['storage']['tile_size']['y'], self.cfg['storage']['tile_size']['x']),
+                        (self.cfg['storage']['resolution']['y'], self.cfg['storage']['resolution']['x']))
 
     def get_confidence_model(self):
         """
