@@ -157,11 +157,11 @@ class WofsFiltered(object):
         """
 
         con_layer = self.compute_confidence()
-        env = self.cfg.get_env_of_product('wofs_statistical_summary')
+        env = self.cfg.get_env_of_product('wofs_summary')
 
         with Datacube(app='wofs_summary', env=env) as dc:
             gwf = GridWorkflow(dc.index, self.grid_spec)
-            indexed_tile = gwf.list_cells(self.tile_index, product='wofs_statistical_summary')
+            indexed_tile = gwf.list_cells(self.tile_index, product='wofs_summary')
             # load the data of the tile
             dataset = gwf.load(tile=indexed_tile[self.tile_index], measurements=['frequency'])
             data = dataset.data_vars['frequency'].data.ravel().reshape(self.grid_spec.tile_resolution)
@@ -218,10 +218,14 @@ class WofsFiltered(object):
         spatial_var = Variable(dtype=np.dtype(DEFAULT_TYPE), nodata=DEFAULT_FLOAT_NODATA,
                                dims=('time',) + geo_box.dimensions,
                                units=('seconds since 1970-01-01 00:00:00',) + geo_box.crs.units)
-        vars = {self.cfg.cfg['wofs_filtered_summary']['confidence']: spatial_var,
-                self.cfg.cfg['wofs_filtered_summary']['confidence_filtered']: spatial_var}
-        vars_params = {self.cfg.cfg['wofs_filtered_summary']['confidence']: {},
-                       self.cfg.cfg['wofs_filtered_summary']['confidence_filtered']: {}}
+
+        band1 = self.cfg.cfg['wofs_filtered_summary']['confidence']
+        band2 = self.cfg.cfg['wofs_filtered_summary']['confidence_filtered']
+
+        vars = {band1: spatial_var,
+                band2: spatial_var}
+        vars_params = {band1: {},
+                       band2: {}}
         global_atts = self.cfg.cfg['global_attributes']
 
         # Get crs string
@@ -237,20 +241,20 @@ class WofsFiltered(object):
 
         # Confidence layer: Fill variable data and set attributes
         confidence = self.compute_confidence()
-        netcdf_unit['confidence'][:] = netcdf_writer.netcdfy_data(confidence)
-        netcdf_unit['confidence'].units = '1'
-        netcdf_unit['confidence'].valid_range = [0, 1.0]
-        netcdf_unit['confidence'].coverage_content_type = 'modelResult'
-        netcdf_unit['confidence'].long_name = \
+        netcdf_unit[band1][:] = netcdf_writer.netcdfy_data(confidence)
+        netcdf_unit[band1].units = '1'
+        netcdf_unit[band1].valid_range = [0, 1.0]
+        netcdf_unit[band1].coverage_content_type = 'modelResult'
+        netcdf_unit[band1].long_name = \
             'Wofs Confidence Layer predicted by {}'.format(self.confidence_model.factors.__str__())
 
         # Confidence filtered wofs-stats frequency layer: Fill variable data and set attributes
         confidence_filtered = self.compute_confidence_filtered()
-        netcdf_unit['confidence_filtered'][:] = netcdf_writer.netcdfy_data(confidence_filtered)
-        netcdf_unit['confidence_filtered'].units = '1'
-        netcdf_unit['confidence_filtered'].valid_range = [0, 1.0]
-        netcdf_unit['confidence_filtered'].coverage_content_type = 'modelResult'
-        netcdf_unit['confidence_filtered'].long_name = 'WOfS-Stats frequency confidence filtered layer'
+        netcdf_unit[band2][:] = netcdf_writer.netcdfy_data(confidence_filtered)
+        netcdf_unit[band2].units = '1'
+        netcdf_unit[band2].valid_range = [0, 1.0]
+        netcdf_unit[band2].coverage_content_type = 'modelResult'
+        netcdf_unit[band2].long_name = 'WOfS-Stats frequency confidence filtered layer'
 
         # Metadata
         dataset_data = DataArray(data=[metadata], dims=('time',))
