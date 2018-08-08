@@ -41,7 +41,8 @@ for i in $(seq 1 $NNODES); do
         parallel --wc -j$NJOBS --delay 5 --linebuffer --colsep ' ' \
         -a $TILEFILE \"/g/data/u46/users/aj9439/wofs/tests/wofs_filtered.py \
         --config /g/data/u46/users/aj9439/wofs/configs/template_client.yaml \
-        --tile {1} {2} \"" &
+        --tile {1} {2} \
+        --jobid $PBS_JOBID \"" &
 done;
 wait
 
