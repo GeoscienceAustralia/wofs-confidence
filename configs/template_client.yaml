@@ -51,10 +51,12 @@ confidence_filtering:
 
 # coverage
 coverage:
-  tile_list_path: '/home/547/aj9439/PycharmProjects/wofs-confidence/configs/temp_tile_list'
+  tile_list_path: '/g/data/u46/users/aj9439/wofs/tests/temp_tile_list'
+
+work:
+  path: '/g/data/u46/wofs/confidence_albers/tmp_ashoka'
 
 logs:
-# a sub directory of the working directory. Futher sub-directories are maintained for
-# each major processing step
-  path: ./logs
+  path: '/g/data/u46/users/aj9439/wofs/data'
   level: INFO
+
