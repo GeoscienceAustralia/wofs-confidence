@@ -14,8 +14,11 @@ import numpy as np
 from xarray import DataArray
 from datetime import datetime
 from pathlib import Path
-import logging
 import click
+
+import logging
+from structlog import get_logger, configure
+from structlog.stdlib import LoggerFactory
 
 try:
     from yaml import CSafeDumper as SafeDumper
@@ -136,8 +139,6 @@ class WofsFiltered(object):
             if factor['name'].startswith('modis'): data[data > 100] = 100
             model_data.append(data.ravel())
             del data
-        # del mock_data
-        logging.info('loaded all factors for tile {}'.format(self.tile_index))
         return np.column_stack(model_data)
 
     def compute_confidence(self):
@@ -228,7 +229,9 @@ class WofsFiltered(object):
         crs = self.cfg.cfg['storage']['crs'] if self.cfg.cfg['storage'].get('crs') else DEFAULT_CRS
 
         # Create a dataset container
-        netcdf_unit = create_netcdf_storage_unit(filename=self.get_filtered_uri(),
+        filename = self.get_filtered_uri()
+        logger.info('creating', file=filename.name)
+        netcdf_unit = create_netcdf_storage_unit(filename=filename,
                                                  crs=CRS(crs),
                                                  coordinates=coords,
                                                  variables=vars,
@@ -259,11 +262,12 @@ class WofsFiltered(object):
         netcdf_unit['dataset'][:] = netcdf_writer.netcdfy_data(dataset_data.values)
 
         netcdf_unit.close()
+        logger.info('completed', file=filename.name)
 
 
 class TileProcessor(object):
     """
-    Identify tiles to br processed.
+    Identify tiles to be processed.
     """
     def __init__(self, cfg: Config):
         self.cfg = cfg
@@ -283,8 +287,8 @@ class TileProcessor(object):
 
     def get_tiles_to_process(self):
         """
-        Identify the tiles not present in the filtered summary directory specified bt the configs
-        for a australian continental coverage.
+        Identify the tiles not present in the filtered summary directory specified by the configs
+        for australian continental coverage.
         """
 
         def file_exists(tile):
@@ -317,11 +321,22 @@ def print_tiles(ctx, param, value):
 @click.option('--retile', is_flag=True, callback=print_tiles,
               help='Identify tiles to be computed for a new run')
 @click.option('--tile', nargs=2, type=click.Tuple([int, int]), help='The tile index')
-def main(config, retile, tile):
+@click.option('--log', help='The log file')
+@click.option('--jobid', help='Optional Job ID')
+def main(config, retile, tile, log, jobid):
     if config:
         cfg = Config(config)
     else:
         cfg = Config('/g/data/u46/users/aj9439/wofs/configs/template_client.yaml')
+    if log:
+        logging.basicConfig(filename=log, level=logging.INFO)
+    else:
+        logging.basicConfig(filename=cfg.cfg['logs']['path'] + '/confidence.log',
+                            level=logging.INFO)
+    if jobid:
+        configure(logger_factory=LoggerFactory())
+        global logger
+        logger = get_logger().bind(jobid=jobid)
     if tile:
         grid_spec = cfg.get_grid_spec()
         wf = WofsFiltered(cfg, grid_spec, tile)
