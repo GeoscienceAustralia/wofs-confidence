@@ -83,7 +83,6 @@ class Config(object):
         with open(model_path, 'rb') as f:
             return pickle.load(f)
 
-
 class WofsFiltered(object):
     """
     Computes, writes of wofs filtered summary product for a single tile.
@@ -224,6 +223,7 @@ class WofsFiltered(object):
                 self.cfg.cfg['wofs_filtered_summary']['confidence_filtered']: spatial_var}
         vars_params = {self.cfg.cfg['wofs_filtered_summary']['confidence']: {},
                        self.cfg.cfg['wofs_filtered_summary']['confidence_filtered']: {}}
+        global_atts = self.cfg.cfg['global_attributes']
 
         # Get crs string
         crs = self.cfg.cfg['storage']['crs'] if self.cfg.cfg['storage'].get('crs') else DEFAULT_CRS
@@ -235,14 +235,14 @@ class WofsFiltered(object):
                                                  crs=CRS(crs),
                                                  coordinates=coords,
                                                  variables=vars,
+                                                 global_attributes=global_atts,
                                                  variable_params=vars_params)
 
         # Confidence layer: Fill variable data and set attributes
         confidence = self.compute_confidence()
         netcdf_unit['confidence'][:] = netcdf_writer.netcdfy_data(confidence)
         netcdf_unit['confidence'].units = '1'
-        netcdf_unit['confidence'].valid_range = [-1.0, 1.0]
-        netcdf_unit['confidence'].standard_name = 'confidence'
+        netcdf_unit['confidence'].valid_range = [0, 1.0]
         netcdf_unit['confidence'].coverage_content_type = 'modelResult'
         netcdf_unit['confidence'].long_name = \
             'Wofs Confidence Layer predicted by {}'.format(self.confidence_model.factors.__str__())
@@ -251,10 +251,9 @@ class WofsFiltered(object):
         confidence_filtered = self.compute_confidence_filtered()
         netcdf_unit['confidence_filtered'][:] = netcdf_writer.netcdfy_data(confidence_filtered)
         netcdf_unit['confidence_filtered'].units = '1'
-        netcdf_unit['confidence_filtered'].valid_range = [-1.0, 1.0]
-        netcdf_unit['confidence_filtered'].standard_name = 'confidence_filtered'
+        netcdf_unit['confidence_filtered'].valid_range = [0, 1.0]
         netcdf_unit['confidence_filtered'].coverage_content_type = 'modelResult'
-        netcdf_unit['confidence_filtered'].long_name = 'Wofs-stats frequency confidence filtered layer'
+        netcdf_unit['confidence_filtered'].long_name = 'WOfS-Stats frequency confidence filtered layer'
 
         # Metadata
         dataset_data = DataArray(data=[metadata], dims=('time',))

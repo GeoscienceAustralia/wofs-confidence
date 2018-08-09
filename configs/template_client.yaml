@@ -51,12 +51,51 @@ confidence_filtering:
 
 # coverage
 coverage:
-  tile_list_path: '/g/data/u46/users/aj9439/wofs/tests/temp_tile_list'
-
-work:
-  path: '/g/data/u46/wofs/confidence_albers/tmp_ashoka'
+  tile_list_path: '/home/547/aj9439/PycharmProjects/wofs-confidence/configs/temp_tile_list'
 
 logs:
   path: '/g/data/u46/users/aj9439/wofs/data'
   level: INFO
 
+global_attributes:
+  title: Water Observations from Space Filtered Statistics 2.1.5
+  summary: |
+      In previous versions of WOfS, the basic water classifications, statistical summaries
+      and confidence products were contained within one product with several datasets. As of
+      version 2.1.5, WOfS is split into three products: Water Observation Feature Layers
+      (WO_25_2.1.5), Summary Statistics (WO-STATS_25_2.1.5), and Filtered Summary Statistics
+      (WO-FILT-STATS_25_2.1.5).
+
+      This product is Water Observations from Space - Filtered Statistics (WO-FILT-STATS),
+      consisting of a Confidence layer that compares the WO-STATS water summary to other
+      national water datasets, and the Filtered Water Summary which uses the Confidence to
+      mask areas of the WO-STATS water summary where Confidence is low. The Filtered Water
+      Summary provides the long term understanding of the recurrence of water in the
+      landscape, with much of the noise due to misclassification filtered out.
+
+      WO-FILT-STATS consists of the following datasets:
+      Confidence: the degree of agreement between water shown in the Water Summary
+      and other national datasets. The Confidence layer provides understanding of
+      whether the water shown in the Water Summary agrees with where water should
+      exist in the landscape, such as due to sloping land or whether water has been
+      detected in a location by other means.
+      Filtered Water Summary: A simplified version of the Water Summary, showing the
+      frequency of water observations where the Confidence is above a cutoff level.
+      This layer gives a noise-reduced view of surface water across Australia.
+
+      Even though confidence filtering is applied to the Filtered Water Summary, some cloud
+      and shadow, and sensor noise does persist.
+  source: "Water Observation from Space Detection Algorithm v1.2"
+  cmi_id: wo-filt-stats_25_2.1.5
+  institution: Commonwealth of Australia (Geoscience Australia)
+  keywords: AU/GA,NASA/GSFC/SED/ESD/LANDSAT,ETM+,TM,OLI,EARTH SCIENCE,SURFACE WATER,FLOOD
+  keywords_vocabulary: GCMD
+  product_version: 2.1.5
+  product_suite: Water Observations from Space 25m
+  publisher_email: earth.observation@ga.gov.au
+  publisher_name: Section Leader, Operations Section, NEMO, Geoscience Australia
+  publisher_url: http://www.ga.gov.au
+  license: CC BY Attribution 4.0 International License
+  cdm_data_type: Grid
+  references: |
+       N. Mueller, A. Lewis, D. Roberts, S. Ring, R. Melrose, J. Sixsmith, L. Lymburner, A. McIntyre, P. Tan, S. Curnow, A. Ip, Water observations from space: Mapping surface water from 25 years of Landsat imagery across Australia, Remote Sensing of Environment, Volume 174, 1 March 2016, Pages 341-352, ISSN 0034-4257, http://dx.doi.org/10.1016/j.rse.2015.11.003. (http://www.sciencedirect.com/science/article/pii/S0034425715301929)
