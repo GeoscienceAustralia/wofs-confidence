@@ -332,10 +332,13 @@ def main(config, retile, tile, log, jobid):
     else:
         logging.basicConfig(filename=cfg.cfg['logs']['path'] + '/confidence.log',
                             level=logging.INFO)
+
+    configure(logger_factory=LoggerFactory())
+    global logger
+    logger = get_logger()
     if jobid:
-        configure(logger_factory=LoggerFactory())
-        global logger
-        logger = get_logger().bind(jobid=jobid)
+        logger = logger.bind(jobid=jobid)
+
     if tile:
         grid_spec = cfg.get_grid_spec()
         wf = WofsFiltered(cfg, grid_spec, tile)
