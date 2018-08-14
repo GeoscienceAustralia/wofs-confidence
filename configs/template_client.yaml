@@ -1,18 +1,18 @@
 
 # datacube environments and the corresponding list of product names
 datacubes:
-- dev: ['wofs_filtered_summary',  ]
-- prod: ['wofs_summary']
+- dev: []
+- prod: ['wofs_summary', 'wofs_filtered_summary',]
 - wofs_confidence: ['mrvbf_nc', 'modis_nc', 'urban_areas_nc', 'dsm_albers',]
 - wofsanc: []
 - mock: []
 
 # the variables or factors used in the confidence model
 factors:
-- {name: 'mrvbf', product: 'mrvbf', band: 'band1'}
-- {name: 'modis', product: 'modis', band: 'band1'}
-- {name: 'urbanareas', product: 'urban_areas', band: 'band1'}
-- {name: 'slope', product: 'dsm', band: 'slope'}
+- {name: 'mrvbf', product: 'mrvbf_nc', band: 'band1'}
+- {name: 'modis', product: 'modis_nc', band: 'band1'}
+- {name: 'urbanareas', product: 'urban_areas_nc', band: 'band1'}
+- {name: 'slope', product: 'dsm_albers', band: 'slope'}
 - {name: 'clearobs', product: 'wofs_summary', band: 'count-clear'}
 - {name: 'phat', product: 'wofs_summary', band: 'frequency'}
 
