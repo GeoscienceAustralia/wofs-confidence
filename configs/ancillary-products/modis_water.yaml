@@ -1,0 +1,28 @@
+name: modis
+description: Modis ancillary data for wofs confidence
+metadata_type: eo
+
+metadata:
+  product_type: modis
+  format:
+    name: NetCDF
+
+measurements:
+  - name: band1
+    dtype: float32
+    nodata: 255 
+    units: '1'
+
+storage:
+  crs: EPSG:3577
+  dimension_order:
+  - time
+  - y
+  - x
+  resolution:
+    x: 25
+    y: -25
+  tile_size:
+    x: 100000.0
+    y: 100000.0
+
