@@ -1,23 +1,25 @@
 
 # datacube environments and the corresponding list of product names
 datacubes:
-- dev: ['wofs_summary_filtered', 'wofs_statistical_summary', 'mrvbf', 'modis', 'urban_areas', 'dsm']
-- wofs_confidence: []
+- dev: []
+- prod: ['wofs_summary', 'wofs_filtered_summary',]
+- wofs_confidence: ['mrvbf_nc', 'modis_nc', 'urban_areas_nc', 'dsm_albers',]
+- wofsanc: []
 - mock: []
 
 # the variables or factors used in the confidence model
 factors:
-- {name: 'mrvbf', product: 'mrvbf', band: 'band1'}
-- {name: 'modis', product: 'modis', band: 'band1'}
-- {name: 'urbanareas', product: 'urban_areas', band: 'band1'}
-- {name: 'slope', product: 'dsm', band: 'slope'}
-- {name: 'clearobs', product: 'wofs_statistical_summary', band: 'count-clear'}
-- {name: 'phat', product: 'wofs_statistical_summary', band: 'frequency'}
+- {name: 'mrvbf', product: 'mrvbf_nc', band: 'band1'}
+- {name: 'modis', product: 'modis_nc', band: 'band1'}
+- {name: 'urbanareas', product: 'urban_areas_nc', band: 'band1'}
+- {name: 'slope', product: 'dsm_albers', band: 'slope'}
+- {name: 'clearobs', product: 'wofs_summary', band: 'count-clear'}
+- {name: 'phat', product: 'wofs_summary', band: 'frequency'}
 
 # Wofs filtered summary layer to band mappings
 wofs_filtered_summary:
   confidence: 'confidence'
-  confidence_filtered: 'confidence_filtered'
+  confidence_filtered: 'wofs_filtered_summary'
   filename: 'wofs_filtered_summary_{}_{}.nc'
   filtered_summary_dir: '/g/data/u46/users/aj9439/wofs/data'
 
@@ -85,7 +87,7 @@ global_attributes:
 
       Even though confidence filtering is applied to the Filtered Water Summary, some cloud
       and shadow, and sensor noise does persist.
-  source: "Water Observation from Space Detection Algorithm v1.2"
+  source: "Water Observations from Space Detection Algorithm v1.5"
   cmi_id: wo-filt-stats_25_2.1.5
   institution: Commonwealth of Australia (Geoscience Australia)
   keywords: AU/GA,NASA/GSFC/SED/ESD/LANDSAT,ETM+,TM,OLI,EARTH SCIENCE,SURFACE WATER,FLOOD

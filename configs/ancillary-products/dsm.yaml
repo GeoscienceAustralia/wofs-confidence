@@ -1,0 +1,28 @@
+name: dsm
+description: dsm 25 metre, 100km tiles, Australian Albers Equal Area projection
+metadata_type: eo
+
+metadata:
+  product_type: dsm
+  format:
+    name: NetCDF
+
+measurements:
+    - name: elevation
+      dtype: float32
+      nodata: 255
+      units: '1'
+    - name: slope
+      dtype: float32
+      nodata: 255
+      units: '1'
+storage:
+  driver: NetCDF CF
+  crs: EPSG:3577
+  dimension_order: ['time', 'y', 'x']
+  resolution:
+          x: 25
+          y: -25
+  tile_size:
+          x: 100000.0
+          y: 100000.0
