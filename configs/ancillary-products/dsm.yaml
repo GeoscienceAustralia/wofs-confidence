@@ -1,5 +1,5 @@
 name: dsm
-description: dsm 25 metre, 100km tiles, Australian Albers Equal Area projection
+description: dsm ancillary data for wofs confidence, 25 metre, 100km tiles, Australian Albers Equal Area projection
 metadata_type: eo
 
 metadata:
